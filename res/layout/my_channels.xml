@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <EditText
+        android:id="@+id/channel_name_field"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+		android:text="">
+    </EditText>
+    <Button
+        android:id="@+id/add_channel_b"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="addChannel"
+        android:text="Add Channel" />
+
+    <ListView
+        android:id="@+id/channel_list_v"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
+
+</LinearLayout>
