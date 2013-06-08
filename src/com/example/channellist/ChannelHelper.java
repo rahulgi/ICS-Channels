@@ -17,15 +17,25 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	public static final String KEY_ROWID = "_id";
 	
+	public static final String TABLE_CHANNELS = "Channels"; 
+	   	public static final String CHANNELS_KEY_CHANNEL = "channel";
+       	public static final String CHANNELS_KEY_FEED_URI = "feeduri";
+	
 	private static final String TABLE_ASTROS = "astros";
 		private static final String ASTROS_KEY_CONTROL_FEED = "control";
 		private static final String ASTROS_KEY_CHANNELS = "channels";
 		private static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
 		// Maybe add Musubi identifier such that Astro can be added to channel using SDK rather than through interface.. is this possible?
 	
-	private static final String DATABASE_CREATE_STORIES_TABLE = 
+	private static final String DATABASE_CREATE_ASTROS_TABLE = 
 	"create table " + TABLE_ASTROS + " (" + KEY_ROWID + " integer primary key autoincrement, "
     + ASTROS_KEY_CONTROL_FEED + " text not null, " + ASTROS_KEY_CHANNELS + " text not null, " + ASTROS_KEY_ACTIVE + " text not null)";
+	
+	private static final String DATABASE_CREATE_CHANNELS_TABLE = 
+			"create table " + TABLE_CHANNELS + " (" 
+					+ KEY_ROWID + " integer primary key autoincrement, " 
+					+ CHANNELS_KEY_FEED_URI + " text not null, "
+					+ CHANNELS_KEY_CHANNEL + " text not null)";
 	
 	private static final String[] STORY_COLUMNS = new String[]{ KEY_ROWID, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
 	/* END ADDED BY */
@@ -51,9 +61,9 @@ class ChannelHelper extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		super.onOpen(db);
-		db.execSQL("CREATE TABLE Channels (_id INTEGER PRIMARY KEY AUTOINCREMENT, channel Text, feedUri TEXT);");
+		db.execSQL(DATABASE_CREATE_CHANNELS_TABLE);
 		/* ADDED BY RAHUL WITH RESPECT TO ASTROS */
-		db.execSQL(DATABASE_CREATE_STORIES_TABLE);
+		db.execSQL(DATABASE_CREATE_ASTROS_TABLE);
 		/* END ADDED BY */
 	}
 
@@ -71,7 +81,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 		try{	
 			ContentValues cv = new ContentValues(); 
 			cv.put("channel", channel_name);
-			cv.put("feedUri", feedURI);
+			cv.put("feeduri", feedURI);
 			getWritableDatabase().insert("Channels", null, cv);
 		}catch (Exception e) {
 			Log.e("ERROR", "ERROR AT: " + e.toString()); 
@@ -87,10 +97,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 		return(c.getString(1)); 
 	}
 	
-	public String getChannel(Cursor c){
-		return(c.getString(1));
-	}
-	
+
 	/*private void copyDBFromResource(){
 		InputStream inputStream = null;
 		OutputStream outputStream = null;
