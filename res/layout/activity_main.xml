@@ -17,5 +17,13 @@
         android:layout_marginTop="110dp"
         android:onClick="MyChannels"
         android:text="@string/my_channels" />
+    
+    <Button
+        android:id="@+id/my_astros"
+        android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:onClick="MyAstros"
+        android:text="@string/my_astros" />
 
 </RelativeLayout>

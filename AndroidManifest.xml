@@ -28,6 +28,7 @@
         <activity android:name=".DisplayChannels"
                   android:windowSoftInputMode="stateHidden">
         </activity>
+        <activity android:name=".DisplayAstros"></activity>
         
     </application>
 

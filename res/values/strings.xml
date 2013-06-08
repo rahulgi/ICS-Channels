@@ -5,5 +5,8 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="my_channels">My Channels</string>
+    <string name="add_channel">Add Channel</string>
+    <string name="my_astros">My Astros</string>
+    <string name="add_astro">Add Astro</string>
 
 </resources>
