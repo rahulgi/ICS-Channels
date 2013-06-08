@@ -160,7 +160,7 @@ public class DisplayChannels extends Activity {
 			channel_title.setText(r.getName(c));
 			//channel_title.setText(c.getString(c.getColumnIndexOrThrow("feed_uri")));
 			//	c.moveToFirst();
-				Log.d("MAIN", c.getColumnCount() + " AND " + c.getColumnName(1) + " AND " + c.getColumnName(1));
+				Log.d("MAIN", c.getColumnCount() + " AND " + c.getColumnName(0) + " AND " + c.getColumnName(2));
 		}
 	}
 }

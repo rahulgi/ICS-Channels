@@ -1,9 +1,12 @@
 package com.example.channellist;
 
+import java.util.List;
+
 import com.example.channellist.DisplayChannels.ChannelAdapter;
 import com.example.channellist.DisplayChannels.ChannelHolder_C;
 
 import mobisocial.socialkit.musubi.DbFeed;
+import mobisocial.socialkit.musubi.DbIdentity;
 import mobisocial.socialkit.musubi.Musubi;
 import android.app.Activity;
 import android.content.Context;
@@ -78,6 +81,8 @@ public class DisplayAstros extends Activity {
 			
 			DbFeed feed = musubi.getFeed(feedUri);
 			feedText = feed.toString();
+			
+			List<DbIdentity> members = feed.getMembers();
 			
 			dbChannelHelper.addAstro(astroName.getText().toString(), feedUri.toString());			
 			dbCursor.requery();

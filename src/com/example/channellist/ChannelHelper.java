@@ -42,19 +42,14 @@ class ChannelHelper extends SQLiteOpenHelper{
 	private static final String[] ASTRO_COLUMNS = new String[]{ 
 		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
 
+	private static final String[] CHANNEL_COLUMNS = new String[]{
+		KEY_ROWID, CHANNELS_KEY_FEED_URI, CHANNELS_KEY_CHANNEL
+	};
 	
 	
 //	private static final String DATABASE_PATH = "/data/data/com.example.channellist/databases/";
 	private static final String DATABASE_NAME = "channels2.db";
-	private static final int SCHEMA_VERSION = 4; 
-	
-	//private static final String TABLE_NAME = "Channels";
-//	private static final String COLUMN_ID = "_id";
-//	private static final String COLUMN_TITLE = "channel_name"; 
-	
-	//public SQLiteDatabase dbSqlite; 
-	
-	//private final Context myContext; 
+	private static final int SCHEMA_VERSION = 5; 
 	
 	public ChannelHelper(Context context){
 		super(context, DATABASE_NAME, null, SCHEMA_VERSION);
@@ -76,7 +71,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 		Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 				+ newVersion + ", which will destroy all old data");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ASTROS);
-        db.execSQL("DROP TABLE IF EXISTS " + "Channels");
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHANNELS);
         onCreate(db);
 		/* END ADDED BY */
 	}
@@ -93,7 +88,10 @@ class ChannelHelper extends SQLiteOpenHelper{
 	}
 	
 	public Cursor getAll(){
-		return(getReadableDatabase().rawQuery("SELECT _id, channel FROM Channels", null)); 
+		Cursor c = getReadableDatabase().query(TABLE_CHANNELS, CHANNEL_COLUMNS, "", null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
 	}
 	
 	
