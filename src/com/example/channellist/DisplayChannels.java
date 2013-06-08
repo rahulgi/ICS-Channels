@@ -145,9 +145,7 @@ public class DisplayChannels extends Activity {
 			ChannelHolder_C holder = new ChannelHolder_C(row); 
 			row.setTag(holder); 
 			return(row);
-		}
-		
-		
+		}		
 	}
 	
 	class ChannelHolder_C{

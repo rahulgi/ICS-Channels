@@ -22,6 +22,7 @@ class ChannelHelper extends SQLiteOpenHelper{
        	public static final String CHANNELS_KEY_FEED_URI = "feeduri";
 	
 	private static final String TABLE_ASTROS = "astros";
+		private static final String ASTROS_KEY_NAME = "name";
 		private static final String ASTROS_KEY_CONTROL_FEED = "control";
 		private static final String ASTROS_KEY_CHANNELS = "channels";
 		private static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
@@ -29,7 +30,8 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	private static final String DATABASE_CREATE_ASTROS_TABLE = 
 	"create table " + TABLE_ASTROS + " (" + KEY_ROWID + " integer primary key autoincrement, "
-    + ASTROS_KEY_CONTROL_FEED + " text not null, " + ASTROS_KEY_CHANNELS + " text not null, " + ASTROS_KEY_ACTIVE + " text not null)";
+    + ASTROS_KEY_NAME + " text not null, " + 
+    ASTROS_KEY_CONTROL_FEED + " text not null, " + ASTROS_KEY_CHANNELS + " text not null, " + ASTROS_KEY_ACTIVE + " text not null)";
 	
 	private static final String DATABASE_CREATE_CHANNELS_TABLE = 
 			"create table " + TABLE_CHANNELS + " (" 
@@ -37,13 +39,14 @@ class ChannelHelper extends SQLiteOpenHelper{
 					+ CHANNELS_KEY_FEED_URI + " text not null, "
 					+ CHANNELS_KEY_CHANNEL + " text not null)";
 	
-	private static final String[] STORY_COLUMNS = new String[]{ KEY_ROWID, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
-	/* END ADDED BY */
+	private static final String[] ASTRO_COLUMNS = new String[]{ 
+		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
+
 	
 	
 //	private static final String DATABASE_PATH = "/data/data/com.example.channellist/databases/";
 	private static final String DATABASE_NAME = "channels2.db";
-	private static final int SCHEMA_VERSION = 1; 
+	private static final int SCHEMA_VERSION = 4; 
 	
 	//private static final String TABLE_NAME = "Channels";
 //	private static final String COLUMN_ID = "_id";
@@ -73,6 +76,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 		Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 				+ newVersion + ", which will destroy all old data");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ASTROS);
+        db.execSQL("DROP TABLE IF EXISTS " + "Channels");
         onCreate(db);
 		/* END ADDED BY */
 	}
@@ -182,12 +186,24 @@ public synchronized void close() {
 }*/
 	
 	/* ADDED BY RAHUL WITH RESPECT TO ASTROS */
-	public long addAstro(String controlFeed)  {
+	public long addAstro(String name, String controlFeed)  {
 		ContentValues astroValues = new ContentValues();
+		astroValues.put(ASTROS_KEY_NAME, name);
 		astroValues.put(ASTROS_KEY_CONTROL_FEED, controlFeed);
 		astroValues.put(ASTROS_KEY_CHANNELS, (new JSONArray().toString()));
 		astroValues.put(ASTROS_KEY_ACTIVE, "");
 		return getWritableDatabase().insert(TABLE_ASTROS, null, astroValues);
+	}
+	
+	public Cursor fetchAllAstros() {
+		Cursor c = getReadableDatabase().query(TABLE_ASTROS, ASTRO_COLUMNS, "", null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
+	}
+	
+	public String getAstroName(Cursor c) {
+		return c.getString(1);
 	}
 	/* END ADDED BY */
 }
