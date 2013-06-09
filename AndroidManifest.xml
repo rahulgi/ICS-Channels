@@ -28,7 +28,12 @@
                   android:windowSoftInputMode="stateHidden">
         </activity>
         <activity android:name=".DisplayAstros"></activity>
-        
+        <activity android:name=".ChannelUI"></activity>
+        <receiver android:name="com.example.MessageReceiver" >
+            <intent-filter>
+                <action android:name="mobisocial.intent.action.DATA_RECEIVED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,57 +1,78 @@
 package com.example.channellist;
 
-import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.Musubi;
-import android.app.Activity;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 
 public class ChannelUI extends Activity {
 	
-    private static final String TAG = "ChannelUI";
+	private static final String ACTION_EDIT_FEED = "musubi.intent.action.EDIT_FEED";
+	private static final int REQUEST_EDIT_FEED = 2;
 	
-    private Musubi mMusubi;
-
+	private static final String ADD_TITLE = "member_header";
+    private static final String ADD_HEADER = "Channel Members";
+	
+	private static final String TAG = "Channel_UI"; 
+	
+	private Uri FeedUri = null; 
+	
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-	}
-	
-	public void EditChMembers(View v){
-		if (mMusubi == null) {
-            // get people to the market to install Musubi
-            Log.d(TAG, "Musubi not installed");
-          /*  new InstallMusubiDialogFragment().show(getSupportFragmentManager(), null);*/
-            return; 
-        }
-        Log.d(TAG, "trying to add followers ");
-        String action = ACTION_CREATE_FEED;
-        int request = REQUEST_CREATE_FEED;
-        Uri feedUri = null;
-        MFeed feedEntry = mFeedManager.getFeed(EntryType.App); // TODO: make this generic
-        if (feedEntry != null) {
-            feedUri = feedEntry.feedUri;
-        }
-        if (feedUri != null) {
-            DbFeed feed = mMusubi.getFeed(feedUri);
-            if (feed != null) {
-                action = ACTION_EDIT_FEED;
-                request = REQUEST_EDIT_FEED;
-            } else {
-                // Delete broken feed entries
-                mFeedManager.deleteFeed(EntryType.App); // TODO: make this generic
-            }
-        }
-        Intent intent = new Intent(action);
-        if (feedUri != null) {
-            intent.setData(feedUri);
-            intent.putExtra(ADD_TITLE, ADD_HEADER);
-        }
-        startActivityForResult(intent, request);
+
+		setContentView(R.layout.channel_ui);		
 		
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.channel_menu, menu);
+		
+		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
+		    String uri_string = extras.getString("feedURI");
+		    FeedUri = Uri.parse(uri_string); 
+		}
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.add_members:
+			if (!Musubi.isMusubiInstalled(this)) {
+				Log.d(TAG, "Musubi is not installed.");
+				return super.onOptionsItemSelected(item);
+			}
+			
+			Intent intent = new Intent(ACTION_EDIT_FEED);
+			intent.putExtra(ADD_TITLE, ADD_HEADER);   	
+	    	intent.setData(FeedUri);
+			startActivityForResult(intent, REQUEST_EDIT_FEED);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	
+	@Override
+	public void onResume() {
+		/*IntentFilter iff = new IntentFilter();
+		iff.addAction("mobisocial.intent.action.DATA_RECEIVED");
+		this.registerReceiver(this.messageReceiver, iff);*/
+		super.onResume();
+	}
+	
+	
 	
 }

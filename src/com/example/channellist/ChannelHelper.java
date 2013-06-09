@@ -22,6 +22,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	private static final String TABLE_ASTROS = "astros";
 		private static final String ASTROS_KEY_NAME = "name";
+		private static final String ASTROS_KEY_ASTRO_ID = "astro_id"; // is this actually a static id?
 		private static final String ASTROS_KEY_CONTROL_FEED = "control";
 		private static final String ASTROS_KEY_CHANNELS = "channels";
 		private static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
@@ -29,7 +30,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	private static final String DATABASE_CREATE_ASTROS_TABLE = 
 	"create table " + TABLE_ASTROS + " (" + KEY_ROWID + " integer primary key autoincrement, "
-    + ASTROS_KEY_NAME + " text not null, " + 
+    + ASTROS_KEY_NAME + " text not null, " + ASTROS_KEY_ASTRO_ID + " text not null, " + 
     ASTROS_KEY_CONTROL_FEED + " text not null, " + ASTROS_KEY_CHANNELS + " text not null, " + ASTROS_KEY_ACTIVE + " text not null)";
 	
 	private static final String DATABASE_CREATE_CHANNELS_TABLE = 
@@ -39,7 +40,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 					+ CHANNELS_KEY_FEED_URI + " text not null)";
 	
 	private static final String[] ASTRO_COLUMNS = new String[]{ 
-		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
+		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_ASTRO_ID, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
 
 	private static final String[] CHANNEL_COLUMNS = new String[]{
 		KEY_ROWID, CHANNELS_KEY_FEED_URI, CHANNELS_KEY_CHANNEL
@@ -97,11 +98,43 @@ class ChannelHelper extends SQLiteOpenHelper{
 	public String getName(Cursor c){
 		return(c.getString(1)); 
 	}
+	
+	public Cursor getChannel(long id) {
+		Cursor c = getReadableDatabase().query(TABLE_CHANNELS, CHANNEL_COLUMNS, KEY_ROWID + " = " + id, null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
+	}
+	
+
+	/*private void copyDBFromResource(){
+		InputStream inputStream = null;
+		OutputStream outputStream = null;
+		String dbFilePath = DATABASE_PATH + DATABASE_NAME; 
+		
+		try{
+			inputStream = myContext.getAssets().open(DATABASE_NAME);
+			outputStream = new FileOutputStream(dbFilePath); 
+			
+			byte[] buffer = new byte [1024];
+			int length; 
+			while((length = inputStream.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, length); 
+			}
+			
+			outputStream.flush(); 
+			outputStream.close();
+			inputStream.close();
+			
+		} catch (IOException e){
+			throw new Error("Problem copying db from resource file");
+		}
 		
 	/* ADDED BY RAHUL WITH RESPECT TO ASTROS */
-	public long addAstro(String name, String controlFeed)  {
+	public long addAstro(String name, String id, String controlFeed)  {
 		ContentValues astroValues = new ContentValues();
 		astroValues.put(ASTROS_KEY_NAME, name);
+		astroValues.put(ASTROS_KEY_ASTRO_ID, id);
 		astroValues.put(ASTROS_KEY_CONTROL_FEED, controlFeed);
 		astroValues.put(ASTROS_KEY_CHANNELS, (new JSONArray().toString()));
 		astroValues.put(ASTROS_KEY_ACTIVE, "");

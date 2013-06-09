@@ -33,10 +33,9 @@ public class DisplayChannels extends Activity {
     private Musubi mMusubi;
 
 	private static final String ACTION_CREATE_FEED = "musubi.intent.action.CREATE_FEED";
-    private static final String ACTION_EDIT_FEED = "musubi.intent.action.EDIT_FEED";
-
-	
 	private static final int REQUEST_CREATE_FEED = 1;
+
+	private static final String ACTION_EDIT_FEED = "musubi.intent.action.EDIT_FEED";
 	private static final int REQUEST_EDIT_FEED = 2;
 
 	private static final String TAG = "Channel_Creator";
@@ -68,36 +67,28 @@ public class DisplayChannels extends Activity {
 			channel_list = (ListView)findViewById(R.id.channel_list_v);
 		
 			channel_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			    public void onItemClick(AdapterView parent, View v, int position, long id){
-		
+			    public void onItemClick(AdapterView parent, View v, int position, long id){		
 			    	/*if (mMusubi == null) {
 			                // get people to the market to install Musubi
 			                Log.d(TAG, "Musubi not installed");
 			                return; 
 			    	}*/
-			   
-			    	TextView feed_uri = (TextView)v.findViewById(R.id.channel_sub);
-			    	Log.d("MAIN", "At position: " + feed_uri.getText());
-			    	Uri chosen_feeduri = (Uri)(Uri.parse((String) feed_uri.getText())); 
+			    	Cursor c = dbChannelHelper.getChannel(id);
+			    	String retrieved_uri = c.getString(1);
 			    	
-			    	DbFeed feed = mMusubi.getFeed(chosen_feeduri);
-		                if (feed == null) {		              
-		                	Log.d("Display_Channels", "FEED IS NULL");
-		                	return;
-		                }
-		                
-		            Intent intent = new Intent(ACTION_EDIT_FEED);
-		            if (chosen_feeduri != null) {
-				    	Log.d("MAIN", "CHOSEN FEED NOT NULL");
-		                intent.setData(feedUri);
-		                intent.putExtra(ADD_TITLE, ADD_HEADER);
-		            } else {
-	                	Log.d("Display_Channels", "URI IS NULL");
-		            }
-		            
-		            startActivityForResult(intent, REQUEST_EDIT_FEED);
 			    	
+			    	Intent intent = new Intent(v.getContext(), ChannelUI.class);
+			    	intent.putExtra("feedURI", retrieved_uri);
+					startActivityForResult(intent,0);
+			    	
+					/*
 			    	//v.findViewById(R.id.channel_sub);
+			    	Cursor c = dbChannelHelper.getChannel(id);
+			    	Intent intent = new Intent(ACTION_EDIT_FEED);
+			    	//intent.setData(feedUri);
+	                intent.putExtra(ADD_TITLE, ADD_HEADER);   	
+			    	intent.setData(Uri.parse(c.getString(1)));
+			    	startActivityForResult(intent, REQUEST_EDIT_FEED);*/
 			    }
 			});
 			

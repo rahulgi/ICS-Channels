@@ -8,5 +8,7 @@
     <string name="add_channel">Add Channel</string>
     <string name="my_astros">My Astros</string>
     <string name="add_astro">Add Astro</string>
+    <string name="add_members">Add Members</string>
+    <string name="add_photos">Add Photos</string>
 
 </resources>
