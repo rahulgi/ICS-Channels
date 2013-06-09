@@ -100,6 +100,13 @@ class ChannelHelper extends SQLiteOpenHelper{
 		return(c.getString(1)); 
 	}
 	
+	public Cursor getChannel(long id) {
+		Cursor c = getReadableDatabase().query(TABLE_CHANNELS, CHANNEL_COLUMNS, KEY_ROWID + " = " + id, null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
+	}
+	
 
 	/*private void copyDBFromResource(){
 		InputStream inputStream = null;
@@ -188,6 +195,7 @@ public synchronized void close() {
 	public long addAstro(String name, String id, String controlFeed)  {
 		ContentValues astroValues = new ContentValues();
 		astroValues.put(ASTROS_KEY_NAME, name);
+		astroValues.put(ASTROS_KEY_ASTRO_ID, id);
 		astroValues.put(ASTROS_KEY_CONTROL_FEED, controlFeed);
 		astroValues.put(ASTROS_KEY_CHANNELS, (new JSONArray().toString()));
 		astroValues.put(ASTROS_KEY_ACTIVE, "");

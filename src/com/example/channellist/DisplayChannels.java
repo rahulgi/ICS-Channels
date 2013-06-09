@@ -31,6 +31,8 @@ public class DisplayChannels extends Activity {
 	
 	private static final String ACTION_CREATE_FEED = "musubi.intent.action.CREATE_FEED";
 	private static final int REQUEST_CREATE_FEED = 1;
+	private static final String ACTION_EDIT_FEED = "musubi.intent.action.EDIT_FEED";
+	private static final int REQUEST_EDIT_FEED = 2;
 
 	private static final String TAG = "Channel_Creator";
 
@@ -54,8 +56,10 @@ public class DisplayChannels extends Activity {
 		
 			channel_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			    public void onItemClick(AdapterView parent, View v, int position, long id){
-			    //	Intent intent = new Intent(v.getContext(), ChannelUI.class);
-//					startActivityForResult(intent,0);
+			    	Cursor c = dbChannelHelper.getChannel(id);
+			    	Intent intent = new Intent(ACTION_EDIT_FEED);
+			    	intent.setData(Uri.parse(c.getString(1)));
+			    	startActivityForResult(intent, REQUEST_EDIT_FEED);
 			    }
 			});
 			

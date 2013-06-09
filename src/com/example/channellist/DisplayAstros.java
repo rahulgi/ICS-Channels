@@ -2,12 +2,17 @@ package com.example.channellist;
 
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.example.channellist.DisplayChannels.ChannelAdapter;
 import com.example.channellist.DisplayChannels.ChannelHolder_C;
 
+import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.DbIdentity;
 import mobisocial.socialkit.musubi.Musubi;
+import mobisocial.socialkit.obj.MemObj;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +23,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.EditText;
@@ -67,6 +73,8 @@ public class DisplayAstros extends Activity {
 		dbChannelHelper.close(); 
 	}
 	
+	DbFeed raar;
+	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == REQUEST_CREATE_FEED && resultCode == RESULT_OK) {
@@ -80,13 +88,14 @@ public class DisplayAstros extends Activity {
 			Musubi musubi = Musubi.getInstance(this);
 			
 			DbFeed feed = musubi.getFeed(feedUri);
+			raar = feed;
+			
 			feedText = feed.toString();
 			
 			List<DbIdentity> members = feed.getMembers();
 			DbIdentity astro = members.get(0);
 			if (astro.isOwned())
 				astro = members.get(1);
-			
 			
 				
 			dbChannelHelper.addAstro(astroName.getText().toString(), astro.getId(), feedUri.toString());			
@@ -96,6 +105,20 @@ public class DisplayAstros extends Activity {
 	
 	private void initializeView() {
 		astroList = (ListView) findViewById(R.id.astro_list);
+		astroList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			public void onItemClick(AdapterView parent, View v, int position, long id) {
+				JSONObject json = new JSONObject();
+	            try {
+	                json.put("can't see this", "invisible");
+	                json.put(Obj.FIELD_HTML, "hi");
+	                
+	            } catch (JSONException e) {
+	                Log.e(TAG, "json error", e);
+	                return;
+	            }
+	            raar.postObj(new MemObj("socialkitdemo", json));
+			}
+		});
 		astroName = (EditText) findViewById(R.id.astro_name_field);
 		addAstro = (Button) findViewById(R.id.add_astro_button);
 		addAstro.setOnClickListener(new View.OnClickListener() {
