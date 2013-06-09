@@ -23,6 +23,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	private static final String TABLE_ASTROS = "astros";
 		private static final String ASTROS_KEY_NAME = "name";
+		private static final String ASTROS_KEY_ASTRO_ID = "astro_id"; // is this actually a static id?
 		private static final String ASTROS_KEY_CONTROL_FEED = "control";
 		private static final String ASTROS_KEY_CHANNELS = "channels";
 		private static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
@@ -30,7 +31,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	private static final String DATABASE_CREATE_ASTROS_TABLE = 
 	"create table " + TABLE_ASTROS + " (" + KEY_ROWID + " integer primary key autoincrement, "
-    + ASTROS_KEY_NAME + " text not null, " + 
+    + ASTROS_KEY_NAME + " text not null, " + ASTROS_KEY_ASTRO_ID + " text not null, " + 
     ASTROS_KEY_CONTROL_FEED + " text not null, " + ASTROS_KEY_CHANNELS + " text not null, " + ASTROS_KEY_ACTIVE + " text not null)";
 	
 	private static final String DATABASE_CREATE_CHANNELS_TABLE = 
@@ -40,7 +41,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 					+ CHANNELS_KEY_CHANNEL + " text not null)";
 	
 	private static final String[] ASTRO_COLUMNS = new String[]{ 
-		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
+		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_ASTRO_ID, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
 
 	private static final String[] CHANNEL_COLUMNS = new String[]{
 		KEY_ROWID, CHANNELS_KEY_FEED_URI, CHANNELS_KEY_CHANNEL
@@ -49,7 +50,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 //	private static final String DATABASE_PATH = "/data/data/com.example.channellist/databases/";
 	private static final String DATABASE_NAME = "channels2.db";
-	private static final int SCHEMA_VERSION = 5; 
+	private static final int SCHEMA_VERSION = 6; 
 	
 	public ChannelHelper(Context context){
 		super(context, DATABASE_NAME, null, SCHEMA_VERSION);
@@ -184,7 +185,7 @@ public synchronized void close() {
 }*/
 	
 	/* ADDED BY RAHUL WITH RESPECT TO ASTROS */
-	public long addAstro(String name, String controlFeed)  {
+	public long addAstro(String name, String id, String controlFeed)  {
 		ContentValues astroValues = new ContentValues();
 		astroValues.put(ASTROS_KEY_NAME, name);
 		astroValues.put(ASTROS_KEY_CONTROL_FEED, controlFeed);

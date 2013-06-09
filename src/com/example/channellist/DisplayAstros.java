@@ -83,8 +83,13 @@ public class DisplayAstros extends Activity {
 			feedText = feed.toString();
 			
 			List<DbIdentity> members = feed.getMembers();
+			DbIdentity astro = members.get(0);
+			if (astro.isOwned())
+				astro = members.get(1);
 			
-			dbChannelHelper.addAstro(astroName.getText().toString(), feedUri.toString());			
+			
+				
+			dbChannelHelper.addAstro(astroName.getText().toString(), astro.getId(), feedUri.toString());			
 			dbCursor.requery();
 		}
 	}
