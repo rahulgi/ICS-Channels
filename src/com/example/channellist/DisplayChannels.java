@@ -10,6 +10,7 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.renderscript.FileA3D.EntryType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,20 +30,34 @@ public class DisplayChannels extends Activity {
 	private EditText channel_name; 	
 	private ListView channel_list; 
 	
+    private Musubi mMusubi;
+
 	private static final String ACTION_CREATE_FEED = "musubi.intent.action.CREATE_FEED";
+    private static final String ACTION_EDIT_FEED = "musubi.intent.action.EDIT_FEED";
+
+	
 	private static final int REQUEST_CREATE_FEED = 1;
+	private static final int REQUEST_EDIT_FEED = 2;
 
 	private static final String TAG = "Channel_Creator";
+	
+	private static final String ADD_TITLE = "member_header";
+    private static final String ADD_HEADER = "Channel Members";
 
 	private Uri feedUri = null;
 	private String feedText;
 
+	
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 			
+	    if (Musubi.isMusubiInstalled(this)) {
+            mMusubi = Musubi.getInstance(this);
+        }
+	    
 		try{
 			setContentView(R.layout.my_channels);
 			
@@ -54,8 +69,35 @@ public class DisplayChannels extends Activity {
 		
 			channel_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			    public void onItemClick(AdapterView parent, View v, int position, long id){
-			    //	Intent intent = new Intent(v.getContext(), ChannelUI.class);
-//					startActivityForResult(intent,0);
+		
+			    	/*if (mMusubi == null) {
+			                // get people to the market to install Musubi
+			                Log.d(TAG, "Musubi not installed");
+			                return; 
+			    	}*/
+			   
+			    	TextView feed_uri = (TextView)v.findViewById(R.id.channel_sub);
+			    	Log.d("MAIN", "At position: " + feed_uri.getText());
+			    	Uri chosen_feeduri = (Uri)(Uri.parse((String) feed_uri.getText())); 
+			    	
+			    	DbFeed feed = mMusubi.getFeed(chosen_feeduri);
+		                if (feed == null) {		              
+		                	Log.d("Display_Channels", "FEED IS NULL");
+		                	return;
+		                }
+		                
+		            Intent intent = new Intent(ACTION_EDIT_FEED);
+		            if (chosen_feeduri != null) {
+				    	Log.d("MAIN", "CHOSEN FEED NOT NULL");
+		                intent.setData(feedUri);
+		                intent.putExtra(ADD_TITLE, ADD_HEADER);
+		            } else {
+	                	Log.d("Display_Channels", "URI IS NULL");
+		            }
+		            
+		            startActivityForResult(intent, REQUEST_EDIT_FEED);
+			    	
+			    	//v.findViewById(R.id.channel_sub);
 			    }
 			});
 			
@@ -157,10 +199,8 @@ public class DisplayChannels extends Activity {
 		}
 		
 		void populateFrom(Cursor c, ChannelHelper r){
-			channel_title.setText(r.getName(c));
-			//channel_title.setText(c.getString(c.getColumnIndexOrThrow("feed_uri")));
-			//	c.moveToFirst();
-				Log.d("MAIN", c.getColumnCount() + " AND " + c.getColumnName(0) + " AND " + c.getColumnName(2));
+			channel_title.setText(c.getString(c.getColumnIndexOrThrow("channel")));
+			channel_info.setText(c.getString(c.getColumnIndexOrThrow("feeduri")));
 		}
 	}
 }
