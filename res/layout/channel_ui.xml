@@ -15,7 +15,7 @@
   	    android:layout_alignParentLeft="true"
   	    android:layout_alignParentRight="true"
   	    android:layout_alignParentTop="true"
-  	    android:onClick="PhotoAdd"
+  	    android:onClick="AddPhotos"
   	    android:text="@string/add_photos" />
   
 </RelativeLayout>
