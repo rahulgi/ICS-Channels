@@ -7,7 +7,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
 import android.util.Log; 
 
 
@@ -37,8 +36,8 @@ class ChannelHelper extends SQLiteOpenHelper{
 	private static final String DATABASE_CREATE_CHANNELS_TABLE = 
 			"create table " + TABLE_CHANNELS + " (" 
 					+ KEY_ROWID + " integer primary key autoincrement, " 
-					+ CHANNELS_KEY_FEED_URI + " text not null, "
-					+ CHANNELS_KEY_CHANNEL + " text not null)";
+					+ CHANNELS_KEY_CHANNEL + " text not null, "
+					+ CHANNELS_KEY_FEED_URI + " text not null)";
 	
 	private static final String[] ASTRO_COLUMNS = new String[]{ 
 		KEY_ROWID, ASTROS_KEY_NAME, ASTROS_KEY_ASTRO_ID, ASTROS_KEY_CONTROL_FEED, ASTROS_KEY_CHANNELS, ASTROS_KEY_ACTIVE };
@@ -131,66 +130,6 @@ class ChannelHelper extends SQLiteOpenHelper{
 			throw new Error("Problem copying db from resource file");
 		}
 		
-	}*/
-	
-	/*public void createDatabase(){
-	createDB(); 
-}*/
-
-/*private void createDB(){
-	boolean dbExist = DBExists(); 
-	
-	if(!dbExist){
-		this.getReadableDatabase();
-		copyDBFromResource(); 
-	}
-	
-}*/
-	
-	/*private boolean DBExists(){
-	SQLiteDatabase db = null; 
-	
-	try{
-		String databasePath = DATABASE_PATH + DATABASE_NAME; 
-		db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE);
-		db.setLocale(Locale.getDefault()); 
-		db.setLockingEnabled(true); 
-		db.setVersion(1); 
-	
-	} catch (SQLiteException e) {
-		Log.e("SqlHelper", "database not found");
-	}
-	
-	if(db !=null){
-		db.close();
-	}
-	return db != null ? true : false; 
-}*/
-
-/*public void openDataBase() throws SQLException {
-	
-	String dbPath = DATABASE_PATH + DATABASE_NAME; 
-	dbSqlite = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READWRITE); 
-}*/
-
-/*@Override
-public synchronized void close() {
-	if (dbSqlite != null){
-		dbSqlite.close(); 
-	}
-	super.close(); 
-}*/
-
-/*public Cursor getCursor() { 
-	SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-	queryBuilder.setTables(TABLE_NAME);
-	String[] asColumnsToReturn = new String[] {COLUMN_ID, COLUMN_TITLE};
-	
-	Cursor mCursor = queryBuilder.query(dbSqlite, asColumnsToReturn, null, null, null, null, "channel_name ASC"); 
-	
-	return mCursor; 
-}*/
-	
 	/* ADDED BY RAHUL WITH RESPECT TO ASTROS */
 	public long addAstro(String name, String id, String controlFeed)  {
 		ContentValues astroValues = new ContentValues();
