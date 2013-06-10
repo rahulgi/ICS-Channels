@@ -72,8 +72,7 @@ public class DisplayAstros extends Activity {
 		super.onDestroy();
 		dbChannelHelper.close(); 
 	}
-	
-	DbFeed raar;
+
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -88,7 +87,6 @@ public class DisplayAstros extends Activity {
 			Musubi musubi = Musubi.getInstance(this);
 			
 			DbFeed feed = musubi.getFeed(feedUri);
-			raar = feed;
 			
 			feedText = feed.toString();
 			
@@ -107,6 +105,9 @@ public class DisplayAstros extends Activity {
 		astroList = (ListView) findViewById(R.id.astro_list);
 		astroList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView parent, View v, int position, long id) {
+				Cursor astro = dbChannelHelper.getAstro(id);
+				String feed = astro.getString(astro.getColumnIndex(ChannelHelper.ASTROS_KEY_CONTROL_FEED));
+				DbFeed controlFeed = Musubi.getInstance(v.getContext()).getFeed(Uri.parse(feed));
 				JSONObject json = new JSONObject();
 	            try {
 	                json.put("can't see this", "invisible");
@@ -116,7 +117,7 @@ public class DisplayAstros extends Activity {
 	                Log.e(TAG, "json error", e);
 	                return;
 	            }
-	            raar.postObj(new MemObj("socialkitdemo", json));
+	            controlFeed.postObj(new MemObj("socialkitdemo", json));
 			}
 		});
 		astroName = (EditText) findViewById(R.id.astro_name_field);
