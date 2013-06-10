@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.net.SocketException;
 
 import mobisocial.socialkit.Obj;
+import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.obj.MemObj;
 import mobisocial.musubi.util.*;
@@ -22,10 +23,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
@@ -64,27 +69,37 @@ public class ChannelUI extends Activity {
 	public static final int MAX_IMAGE_HEIGHT = 720;
 	public static final int MAX_IMAGE_SIZE = 40*1024;
 
+	private Uri FeedUri = null;
+	
+	private DbFeed activeChannel = null;
 
-	private Uri FeedUri = null; 
+	//==============================================================
+	private DbInsertionThread mDbInsertionThread;
+    public static final String SUPER_APP_ID = "mobisocial.musubi";
+
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.channel_ui);	
+		
+		Bundle extras = getIntent().getExtras();
+		if (extras != null) {
+			String uri_string = extras.getString("feedURI");
+			FeedUri = Uri.parse(uri_string); 
+		}
+		
+		DbFeed feed = musubi.getFeed(feedUri);
 
-		setContentView(R.layout.channel_ui);		
-
+		
+		
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.channel_menu, menu);
-
-		Bundle extras = getIntent().getExtras();
-		if (extras != null) {
-			String uri_string = extras.getString("feedURI");
-			FeedUri = Uri.parse(uri_string); 
-		}
 		return true;
 	}
 
@@ -124,7 +139,13 @@ public class ChannelUI extends Activity {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-
+				Intent gallery = new Intent(Intent.ACTION_GET_CONTENT);
+				gallery.setType("image/*");
+				// god damn fragments.
+				getTargetFragment().startActivityForResult(Intent.createChooser(gallery, null), REQUEST_GALLERY_THUMBNAIL);
+				
+				
+				
 			}
 		});
 
@@ -146,8 +167,8 @@ public class ChannelUI extends Activity {
 				mType = "image/jpeg";
 				Intent intent = new Intent(ACTION_MEDIA_CAPTURE);
 				intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-				intent.putExtra(Musubi.EXTRA_FEED_URI, FeedUri);
-
+				intent.putExtra(Musubi.EXTRA_FEED_URI, FeedUri);				
+				
 				try {
 					startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
 				} catch (ActivityNotFoundException e) {
@@ -159,6 +180,7 @@ public class ChannelUI extends Activity {
 
 		alert.show(); 
 	}
+	
 	class CameraCaptureTask extends AsyncTask<Void, Void, Boolean> {
 
 		Throwable mError;	   
@@ -273,7 +295,8 @@ public class ChannelUI extends Activity {
 						Toast.LENGTH_SHORT).show();	            
 			}	      
 		}
-	}	 
+	}	
+ 
 
 	public MemObj getmObj(Uri storedUri, String mComment) throws IOException{
 		boolean referenceOrig = true; 
@@ -328,4 +351,48 @@ public class ChannelUI extends Activity {
 
 		return new MemObj("picture", base, data);	
 	}
+	
+	 class DbInsertionThread extends Thread {
+	    	public static final int INSERT = 0;
+	    	private Handler mHandler;
+
+	    	public DbInsertionThread() {
+	    		setName("DbInsertionThread");
+	    	}
+
+	    	@Override
+	    	public void run() {
+	    		Looper.prepare();
+	    		mHandler = new Handler() {
+	    			@Override
+	    			public void handleMessage(Message msg) {
+	    				switch (msg.what) {
+	    				case INSERT:
+	    					ContentValues cv = (ContentValues)msg.obj;
+	    					insertObjWithContentValues(SUPER_APP_ID, cv);
+	    				}
+	    			}
+	    		};
+	    		synchronized (this) {
+	    			notify();
+	    		}
+	    		Looper.loop();
+	    	}
+
+	    	public Handler getHandler() {
+	    		if (mHandler == null) {
+	    			synchronized (this) {
+	    				while (mHandler == null) {
+	    					try {
+	    						wait();
+	    					} catch (InterruptedException e) {}
+	    				}
+	    			}
+	    		}
+	    		return mHandler;
+	    	}
+	    }
+	 
+	 
+	
 }
