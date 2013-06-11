@@ -21,11 +21,11 @@ class ChannelHelper extends SQLiteOpenHelper{
        	public static final String CHANNELS_KEY_FEED_URI = "feeduri";
 	
 	private static final String TABLE_ASTROS = "astros";
-		private static final String ASTROS_KEY_NAME = "name";
-		private static final String ASTROS_KEY_ASTRO_ID = "astro_id"; // is this actually a static id?
-		private static final String ASTROS_KEY_CONTROL_FEED = "control";
-		private static final String ASTROS_KEY_CHANNELS = "channels";
-		private static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
+		public static final String ASTROS_KEY_NAME = "name";
+		public static final String ASTROS_KEY_ASTRO_ID = "astro_id"; // is this actually a static id?
+		public static final String ASTROS_KEY_CONTROL_FEED = "control";
+		public static final String ASTROS_KEY_CHANNELS = "channels";
+		public static final String ASTROS_KEY_ACTIVE = "active"; // channel URI
 		// Maybe add Musubi identifier such that Astro can be added to channel using SDK rather than through interface.. is this possible?
 	
 	private static final String DATABASE_CREATE_ASTROS_TABLE = 
@@ -96,7 +96,7 @@ class ChannelHelper extends SQLiteOpenHelper{
 	
 	
 	public String getName(Cursor c){
-		return(c.getString(1)); 
+		return(c.getString(c.getColumnIndex(CHANNELS_KEY_CHANNEL))); 
 	}
 	
 	public Cursor getChannel(long id) {
@@ -146,6 +146,24 @@ class ChannelHelper extends SQLiteOpenHelper{
 		if (c != null)
 			c.moveToFirst();
 		return c;
+	}
+	
+	public Cursor getAstro(long id) {
+		Cursor c = getReadableDatabase().query(TABLE_ASTROS, ASTRO_COLUMNS, KEY_ROWID + " = " + id, null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
+	}
+	
+	public Cursor getAstroByMusubiID(String id) {
+		Cursor c = getReadableDatabase().query(TABLE_ASTROS, ASTRO_COLUMNS, ASTROS_KEY_ASTRO_ID + " = " + id, null, null, null, null);
+		if (c != null)
+			c.moveToFirst();
+		return c;
+	}
+	
+	public void addAstroMemberFeed(long id, String uri) {
+		
 	}
 	
 	public String getAstroName(Cursor c) {

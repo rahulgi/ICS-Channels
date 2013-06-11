@@ -36,6 +36,8 @@ public class MessageReceiver extends BroadcastReceiver {
 			Log.d(TAG, "obj is null?");
 			return;
 		}
+
+		Log.d(TAG, obj.getType());
 		
 		JSONObject json = obj.getJson();
 		if (json == null) {

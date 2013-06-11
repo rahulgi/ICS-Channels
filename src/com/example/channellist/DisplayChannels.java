@@ -1,6 +1,10 @@
 package com.example.channellist;
 
+import java.util.Iterator;
+import java.util.List;
+
 import mobisocial.socialkit.musubi.DbFeed;
+import mobisocial.socialkit.musubi.DbIdentity;
 import mobisocial.socialkit.musubi.Musubi;
 import android.app.Activity;
 import android.content.Context;
@@ -74,21 +78,13 @@ public class DisplayChannels extends Activity {
 			                return; 
 			    	}*/
 			    	Cursor c = dbChannelHelper.getChannel(id);
+			    	String rowId = c.getString(0);
 			    	String retrieved_uri = c.getString(1);
-			    	
 			    	
 			    	Intent intent = new Intent(v.getContext(), ChannelUI.class);
 			    	intent.putExtra("feedURI", retrieved_uri);
+			    	intent.putExtra("rowId", rowId);
 					startActivityForResult(intent,0);
-			    	
-					/*
-			    	//v.findViewById(R.id.channel_sub);
-			    	Cursor c = dbChannelHelper.getChannel(id);
-			    	Intent intent = new Intent(ACTION_EDIT_FEED);
-			    	//intent.setData(feedUri);
-	                intent.putExtra(ADD_TITLE, ADD_HEADER);   	
-			    	intent.setData(Uri.parse(c.getString(1)));
-			    	startActivityForResult(intent, REQUEST_EDIT_FEED);*/
 			    }
 			});
 			
@@ -150,12 +146,26 @@ public class DisplayChannels extends Activity {
 			Musubi musubi = Musubi.getInstance(this);
 			
 			DbFeed feed = musubi.getFeed(feedUri);
+			checkForAstros(feed);
 			feedText = feed.toString();
 			
 			dbChannelHelper.insert(channel_name.getText().toString(), feedUri.toString());			
 			dbCursor.requery();
 			
 			channel_name.setText("");
+		}
+	}
+	
+	/* Check for any owned astros in the feed members and add the feed to the channel. */
+	private void checkForAstros(DbFeed feed) {
+		List<DbIdentity> members = feed.getMembers();
+		Iterator itr = members.iterator();
+		while (itr.hasNext()) {
+			DbIdentity member = (DbIdentity) itr.next();
+			Cursor astro = dbChannelHelper.getAstroByMusubiID(member.getId());
+			if (astro != null) {
+				//dbChannelHelper.addAstroMemberFeed(member.getId(), feed.getUri().toString());
+			}
 		}
 	}
 		

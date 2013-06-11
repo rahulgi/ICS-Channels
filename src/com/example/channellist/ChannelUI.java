@@ -1,44 +1,33 @@
 package com.example.channellist;
 
-import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Enumeration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.net.SocketException;
 
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.obj.MemObj;
-import mobisocial.musubi.util.*;
-
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
-import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 
 
 public class ChannelUI extends Activity {
@@ -51,30 +40,28 @@ public class ChannelUI extends Activity {
 
 	private static final String TAG = "Channel_UI"; 
 
-	public static final String CATEGORY_IN_PLACE = "mobisocial.intent.category.IN_PLACE";
 	static final String PICSAY_PACKAGE_PREFIX = "com.shinycore.picsay";
-	private static final int REQUEST_CAPTURE_MEDIA = 9412;
-	private Uri mFeedUri;
-	private Uri mImageUri;
-	private String mType;
-
 	static final String ACTION_MEDIA_CAPTURE = "mobisocial.intent.action.MEDIA_CAPTURE";
+	private static final int REQUEST_CAPTURE_MEDIA = 3;
 
 	public static final String PICTURE_SUBFOLDER = "Pictures/Musubi";
 	public static final String HTML_SUBFOLDER = "Musubi/HTML";
 	public static final String FILES_SUBFOLDER = "Musubi/Files";
 	public static final String APPS_SUBFOLDER = "Musubi/Apps";
 
-	public static final int MAX_IMAGE_WIDTH = 1280;
-	public static final int MAX_IMAGE_HEIGHT = 720;
-	public static final int MAX_IMAGE_SIZE = 40*1024;
-
 	private Uri FeedUri = null;
-	
-	private DbFeed activeChannel = null;
+	private String mRowId;
+	private static Uri newImageUri;
 
+	private DbFeed activeFeed;
+	
+	private Bitmap mImageBitMap; 
+
+	
+	public final static String APP_PATH_SD_CARD = "/bao";
+
+	
 	//==============================================================
-	private DbInsertionThread mDbInsertionThread;
     public static final String SUPER_APP_ID = "mobisocial.musubi";
 
 
@@ -88,12 +75,11 @@ public class ChannelUI extends Activity {
 		if (extras != null) {
 			String uri_string = extras.getString("feedURI");
 			FeedUri = Uri.parse(uri_string); 
-		}
+			mRowId = extras.getString("rowId");
+		}		
 		
-		DbFeed feed = musubi.getFeed(feedUri);
+		//Musubi musubi = Musubi.getInstance(this);
 
-		
-		
 	}
 
 	@Override
@@ -130,9 +116,36 @@ public class ChannelUI extends Activity {
 		this.registerReceiver(this.messageReceiver, iff);*/
 		super.onResume();
 	}
+	
+	private File createFile() throws Exception
+	{
+		
+		String state = Environment.getExternalStorageState();
+		if (Environment.MEDIA_MOUNTED.equals(state)) {
+			File path = new File(Environment.getExternalStorageDirectory().getPath() + "/Astro_Channel/");
+			path.mkdirs();
+			File file = new File(path, "Feed" + mRowId.toString() + ".jpg");
+			Log.d("TAG", path + " AND " + file);
+			return file; 
+			//newImageUri = Uri.fromFile(file);
+		}
+		return null; 
+		
+	   /* File tempDir= Environment.getExternalStorageDirectory();
+	    tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
+	    if(!tempDir.exists())
+	    {
+	        tempDir.mkdir();
+	    }
+	    return File.createTempFile(part, ext, tempDir);*/
+	}
 
 	@SuppressWarnings("deprecation")
 	public void AddPhotos(View v){
+		
+		activeFeed = Musubi.getInstance(v.getContext()).getFeed(FeedUri);	
+		Log.d(TAG, activeFeed.toString());
+		
 		AlertDialog alert = new AlertDialog.Builder(ChannelUI.this).create();
 		alert.setTitle("Photo Options"); 
 		alert.setButton("From Gallery", new DialogInterface.OnClickListener() {
@@ -142,7 +155,7 @@ public class ChannelUI extends Activity {
 				Intent gallery = new Intent(Intent.ACTION_GET_CONTENT);
 				gallery.setType("image/*");
 				// god damn fragments.
-				getTargetFragment().startActivityForResult(Intent.createChooser(gallery, null), REQUEST_GALLERY_THUMBNAIL);
+				//getTargetFragment().startActivityForResult(Intent.createChooser(gallery, null), REQUEST_GALLERY_THUMBNAIL);
 				
 				
 				
@@ -153,246 +166,123 @@ public class ChannelUI extends Activity {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				mFeedUri = FeedUri;
-
-				final File path = new File(Environment.getExternalStorageDirectory(),
-						(ChannelUI.this).getPackageName());
-				if (!path.exists()) {
-					path.mkdir();
-				}
-
-				File new_file = new File(path, "image.tmp");
-				mImageUri = Uri.fromFile(new_file);
-
-				mType = "image/jpeg";
+												
 				Intent intent = new Intent(ACTION_MEDIA_CAPTURE);
-				intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-				intent.putExtra(Musubi.EXTRA_FEED_URI, FeedUri);				
+				    File photoFile;
+				    try
+				    {
+				        // place where to store camera taken picture		
+				        photoFile = createFile();
+				        if(photoFile == null)
+				        	return;
+				        
+				        photoFile.delete();
+				    }
+				    catch(Exception e)
+				    {
+				        Log.v(TAG, "Can't create file to take picture!");
+				        return;
+				    }
+
+				    newImageUri = Uri.fromFile(photoFile);
+				    intent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);
+				    //start camera intent
+			    	Log.v(TAG, "SUCCESS CREATING FILE");
+
+			    	try {
+						startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
+					} catch (ActivityNotFoundException e) {
+						intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+						startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
+					}
+			    	
+				/*
+				String state = Environment.getExternalStorageState();
+				if (Environment.MEDIA_MOUNTED.equals(state)) {
+					
+					File path = new File(Environment.getExternalStorageDirectory().getPath() + "/Astro_Channel/");
+					path.mkdirs();
+					File file = new File(path, "Feed" + mRowId.toString() + ".jpg");
+					//Log.d("TAG", path + " AND " + file);
+					newImageUri = Uri.fromFile(file);
+										
+					//Intent intent = new Intent(ACTION_MEDIA_CAPTURE);
+					Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+					//intent.putExtra(MediaStore.EXTRA_OUTPUT, newImageUri);            
+
+					try {
+						startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
+					} catch (ActivityNotFoundException e) {
+						intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+						startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
+					}	                
+				}
 				
-				try {
-					startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
-				} catch (ActivityNotFoundException e) {
-					intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-					startActivityForResult(intent, REQUEST_CAPTURE_MEDIA);
-				}	
+			*/	
 			}
 		});
 
 		alert.show(); 
 	}
 	
-	class CameraCaptureTask extends AsyncTask<Void, Void, Boolean> {
+	public void scaleDownBitmap(Bitmap photo, int newHeight, Context context) {
 
-		Throwable mError;	   
-		Obj mObj;	    
-		String mComment;
+		 final float densityMultiplier = context.getResources().getDisplayMetrics().density;        
 
-		public CameraCaptureTask(String comment) {
-			mComment = comment;
-			mObj = null;
-		}
+		 int h= (int) (newHeight*densityMultiplier);
+		 int w= (int) (h * photo.getWidth()/((double) photo.getHeight()));
 
-		protected Boolean doInBackground(Void... params) {
-
-			Uri storedUri =  null;
-
-			//CONTENT CORRAL PASS=======================================================================================
-			File contentDir;
-			if (mType != null && (mType.startsWith("image/") || mType.startsWith("video/"))) {
-				contentDir = new File(Environment.getExternalStorageDirectory(), PICTURE_SUBFOLDER);
-			} else {
-				contentDir = new File(Environment.getExternalStorageDirectory(), FILES_SUBFOLDER);
-			}
-
-			if(!contentDir.exists() && !contentDir.mkdirs()) {
-				Log.e(TAG, "failed to create musubi corral directory");
-				storedUri = null;
-			}
-			int timestamp = (int) (System.currentTimeMillis() / 1000L);
-			String ext = null;
-
-			if (mType.equals("image/jpeg")) {
-				ext = "jpg";
-			}
-
-			if (mType.equals("image/png")) {
-				ext = "png";
-			}
-
-			String fname = timestamp + "-" + mImageUri.getLastPathSegment() + "." + ext;
-			File copy = new File(contentDir, fname);
-			FileOutputStream out = null;
-			InputStream in = null;
-			try {
-				contentDir.mkdirs();
-				in = (ChannelUI.this).getContentResolver().openInputStream(mImageUri);
-				BufferedInputStream bin = new BufferedInputStream(in);
-				byte[] buff = new byte[1024];
-				out = new FileOutputStream(copy);
-				int r;
-				while ((r = bin.read(buff)) > 0) {
-					out.write(buff, 0, r);
-				}
-				bin.close();
-				storedUri = Uri.fromFile(copy);
-			} catch (IOException e) {
-				Log.w(TAG, "Error copying file", e);
-				if (copy.exists()) {
-					copy.delete();
-				}
-				storedUri = null;
-			} finally {
-				try {
-					if (in != null)
-						in.close();
-					if (out != null)
-						out.close();
-				} catch (IOException e) {
-					Log.e(TAG, "failed to close handle on store corral content", e);
-				}
-			}
-
-
-			///PICTURE OBJ PASS=====================================================================
-			try {
-				mObj = getmObj(storedUri, null); 	                		                
-				//=======================================================================
-			} catch (IOException e) {
-				Log.e(TAG, "Corral photo action had an issue", e);
-				try {
-					mObj = getmObj(mImageUri,null); //PictureObj.from(getActivity(), mImageUri, true, mComment);
-				} catch(Throwable t) {
-					Log.e(TAG, "fallback photo action had an issue", t);
-				}
-			}
-
-			if (mObj == null) {
-				return false;
-			}
-
-			//EasyTracker.getTracker().trackEvent(MusubiAnalytics.CATEGORY_APP, MusubiAnalytics.ACTION_SEND_OBJ, type, -1);
-			//MusubiContentProvider.insertInBackground(obj, mFeedUri, null);
-
-			//public static void insertInBackground(Obj obj, Uri feedUri, String assumedAppId) {
-
-			//==========================================================================
-			
-			
-			//==========================================================================
-
-	        
-			return true;
-		}
-
-		@Override
-
-		protected void onPostExecute(Boolean result) {
-
-			if (result) {
-				//Helpers.emailUnclaimedMembers((ChannelUI.this), mObj, mFeedUri);	            
-			} else {
-				Toast.makeText((ChannelUI.this), "Failed to capture media.",
-						Toast.LENGTH_SHORT).show();	            
-			}	      
-		}
-	}	
- 
-
-	public MemObj getmObj(Uri storedUri, String mComment) throws IOException{
-		boolean referenceOrig = true; 
-
-		ContentResolver cr = (ChannelUI.this).getContentResolver();
-
-		UriImage image = new UriImage((ChannelUI.this), storedUri);
-		byte[] data = image.getResizedImageData(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT, MAX_IMAGE_SIZE);   
-
-		JSONObject base = new JSONObject();
-		// Maintain a reference to original file
-		try {
-			String type = cr.getType(storedUri);
-			if (type == null) {
-				type = "image/jpeg";
-			}
-
-
-			if (mComment != null && mComment.length() > 0) {
-				base.put("text", mComment);
-			}
-
-			base.put("mimeType", type);
-			if (referenceOrig) {
-				base.put("localUri", storedUri.toString());
-				String localIp = null;
-
-				//=====================================                 
-				try {
-					for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-						NetworkInterface intf = en.nextElement();
-						for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr
-								.hasMoreElements();) {
-							InetAddress inetAddress = enumIpAddr.nextElement();
-							if (!inetAddress.isLoopbackAddress()) {
-								// 	not ready for IPv6, apparently.
-								if (!inetAddress.getHostAddress().contains(":")) {
-									localIp = inetAddress.getHostAddress().toString();
-								}
-							}
-						}
-					}
-				} catch (SocketException ex) {
-
-				}             
-				                     
-			}
-
-		} catch (JSONException e) {
-			Log.e(TAG, "impossible json error possible!");             
-		}            	                 	         
-
-		return new MemObj("picture", base, data);	
+		 photo=Bitmap.createScaledBitmap(photo, w, h, true);
+		 
+		 mImageBitMap = photo; 
 	}
 	
-	 class DbInsertionThread extends Thread {
-	    	public static final int INSERT = 0;
-	    	private Handler mHandler;
-
-	    	public DbInsertionThread() {
-	    		setName("DbInsertionThread");
-	    	}
-
-	    	@Override
-	    	public void run() {
-	    		Looper.prepare();
-	    		mHandler = new Handler() {
-	    			@Override
-	    			public void handleMessage(Message msg) {
-	    				switch (msg.what) {
-	    				case INSERT:
-	    					ContentValues cv = (ContentValues)msg.obj;
-	    					insertObjWithContentValues(SUPER_APP_ID, cv);
-	    				}
-	    			}
-	    		};
-	    		synchronized (this) {
-	    			notify();
-	    		}
-	    		Looper.loop();
-	    	}
-
-	    	public Handler getHandler() {
-	    		if (mHandler == null) {
-	    			synchronized (this) {
-	    				while (mHandler == null) {
-	    					try {
-	    						wait();
-	    					} catch (InterruptedException e) {}
-	    				}
-	    			}
-	    		}
-	    		return mHandler;
-	    	}
+	
+	public void grabImage()
+	{
+		Bitmap newBitMap = null; 
+	    this.getContentResolver().notifyChange(newImageUri, null);
+	    ContentResolver cr = this.getContentResolver();
+	    try
+	    {
+	    	newBitMap = android.provider.MediaStore.Images.Media.getBitmap(cr, newImageUri);
+	    	scaleDownBitmap(newBitMap, 100, ChannelUI.this); 
 	    }
-	 
-	 
+	    catch (Exception e)
+	    {
+	        Toast.makeText(this, "Failed to load", Toast.LENGTH_SHORT).show();
+	        Log.d(TAG, "Failed to load", e);
+	    }
+	}
+
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.d("MEH", "ENTERED HERE");
+
+		if (requestCode == REQUEST_CAPTURE_MEDIA && resultCode == RESULT_OK) {
+			Log.d("MEH", "ENTERED INSIDE ON IF");
+
+			grabImage();
+			if(mImageBitMap == null)
+			    Log.d("Meh", "FAILED");
+
+	    	JSONObject base = new JSONObject();
+		    byte[] byte_arr = getBytesFromBitmap(mImageBitMap); 
+		    
+		    MemObj pictureObj = new MemObj("picture", base, byte_arr);		    
+		    
+		    activeFeed.postObj(pictureObj);
+		    
+            Log.d(TAG, "FEED: " + activeFeed.toString() );
+            
+            return; 	
+		}
+	}
+
+	public byte[] getBytesFromBitmap(Bitmap bitmap) {
+	    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+	    bitmap.compress(CompressFormat.JPEG, 100, stream);
+	    return stream.toByteArray();
+	}
 	
 }
