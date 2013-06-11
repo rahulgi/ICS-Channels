@@ -182,6 +182,22 @@ class ChannelHelper extends SQLiteOpenHelper{
 		return false;
 	}
 	
+	public boolean setAstroActiveFeed(long id, String uri) {
+		Cursor astro = getAstro(id);
+		if (astro != null) {
+			Log.d(TAG, "Activating channel " + uri + "for astro!");
+			try {
+				ContentValues astroValues = new ContentValues();
+				astroValues.put(ASTROS_KEY_ACTIVE, uri);
+				return getWritableDatabase().update(TABLE_ASTROS, astroValues, 
+						KEY_ROWID + " = " + id, null) > 0;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
 	public String getAstroName(Cursor c) {
 		return c.getString(1);
 	}

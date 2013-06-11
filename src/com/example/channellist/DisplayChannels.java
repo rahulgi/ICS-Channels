@@ -191,6 +191,21 @@ public class DisplayChannels extends Activity {
 	                return;
 	            }
 	            controlFeed.postObj(new MemObj("channellist", json));
+	            
+	            dbChannelHelper.setAstroActiveFeed(astro.getLong(astro.getColumnIndex(ChannelHelper.KEY_ROWID)), 
+	            		feed.getUri().toString());
+	            
+	            // aUTOMATICALLY activates new channel on Astro
+	            json = new JSONObject();
+	            try {
+	                json.put(MainActivity.ASTRO_KEY_ACTION, MainActivity.ASTRO_ACTION_ACTIVATE);
+	                json.put(MainActivity.ASTRO_KEY_FEED, feed.getUri().toString());
+	                
+	            } catch (JSONException e) {
+	                Log.e(TAG, "json error", e);
+	                return;
+	            }
+	            controlFeed.postObj(new MemObj("channellist", json));
 			}
 		}
 	}
