@@ -94,10 +94,18 @@ public class DisplayAstros extends Activity {
 			DbIdentity astro = members.get(0);
 			if (astro.isOwned())
 				astro = members.get(1);
-			
 				
 			dbChannelHelper.addAstro(astroName.getText().toString(), astro.getId(), feedUri.toString());			
 			dbCursor.requery();
+			
+			JSONObject json = new JSONObject();
+            try {
+                json.put(MainActivity.ASTRO_KEY_ACTION, MainActivity.ASTRO_ACTION_OWN);
+            } catch (JSONException e) {
+                Log.e(TAG, "json error", e);
+                return;
+            }
+            feed.postObj(new MemObj("channellist", json));
 		}
 	}
 	
