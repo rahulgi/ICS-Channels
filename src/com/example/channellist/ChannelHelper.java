@@ -1,6 +1,7 @@
 package com.example.channellist;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -156,14 +157,45 @@ class ChannelHelper extends SQLiteOpenHelper{
 	}
 	
 	public Cursor getAstroByMusubiID(String id) {
-		Cursor c = getReadableDatabase().query(TABLE_ASTROS, ASTRO_COLUMNS, ASTROS_KEY_ASTRO_ID + " = " + id, null, null, null, null);
+		Cursor c = getReadableDatabase().query(TABLE_ASTROS, ASTRO_COLUMNS, ASTROS_KEY_ASTRO_ID + " = \"" + id + "\"", null, null, null, null);
 		if (c != null)
 			c.moveToFirst();
 		return c;
 	}
 	
-	public void addAstroMemberFeed(long id, String uri) {
-		
+	public boolean addAstroMemberFeed(long id, String uri) {
+		Cursor astro = getAstro(id);
+		if (astro != null) {
+			Log.d(TAG, "Added an Astro to the channel!");
+			String feeds = astro.getString(astro.getColumnIndex(ASTROS_KEY_CHANNELS));
+			try {
+				JSONArray arr = new JSONArray(feeds);
+				arr.put(uri);
+				ContentValues astroValues = new ContentValues();
+				astroValues.put(ASTROS_KEY_CHANNELS, arr.toString());
+				return getWritableDatabase().update(TABLE_ASTROS, astroValues, 
+						KEY_ROWID + " = " + id, null) > 0;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public boolean setAstroActiveFeed(long id, String uri) {
+		Cursor astro = getAstro(id);
+		if (astro != null) {
+			Log.d(TAG, "Activating channel " + uri + "for astro!");
+			try {
+				ContentValues astroValues = new ContentValues();
+				astroValues.put(ASTROS_KEY_ACTIVE, uri);
+				return getWritableDatabase().update(TABLE_ASTROS, astroValues, 
+						KEY_ROWID + " = " + id, null) > 0;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 	
 	public String getAstroName(Cursor c) {

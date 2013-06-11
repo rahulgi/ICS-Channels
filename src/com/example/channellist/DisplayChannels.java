@@ -3,9 +3,14 @@ package com.example.channellist;
 import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.DbIdentity;
 import mobisocial.socialkit.musubi.Musubi;
+import mobisocial.socialkit.obj.MemObj;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -163,8 +168,36 @@ public class DisplayChannels extends Activity {
 		while (itr.hasNext()) {
 			DbIdentity member = (DbIdentity) itr.next();
 			Cursor astro = dbChannelHelper.getAstroByMusubiID(member.getId());
-			if (astro != null) {
-				//dbChannelHelper.addAstroMemberFeed(member.getId(), feed.getUri().toString());
+			if (astro != null && astro.getCount() > 0) {
+				dbChannelHelper.addAstroMemberFeed(astro.getLong(astro.getColumnIndex(ChannelHelper.KEY_ROWID)), 
+						feed.getUri().toString());
+				DbFeed controlFeed = Musubi.getInstance(this).getFeed(Uri.parse(astro.getString(astro.getColumnIndex(ChannelHelper.ASTROS_KEY_CONTROL_FEED))));
+				
+				JSONObject json = new JSONObject();
+	            try {
+	                json.put(MainActivity.ASTRO_KEY_ACTION, MainActivity.ASTRO_ACTION_ADD);
+	                json.put(MainActivity.ASTRO_KEY_FEED, feed.getUri().toString());
+	                
+	            } catch (JSONException e) {
+	                Log.e(TAG, "json error", e);
+	                return;
+	            }
+	            controlFeed.postObj(new MemObj("channellist", json));
+	            
+	            dbChannelHelper.setAstroActiveFeed(astro.getLong(astro.getColumnIndex(ChannelHelper.KEY_ROWID)), 
+	            		feed.getUri().toString());
+	            
+	            // aUTOMATICALLY activates new channel on Astro
+	            json = new JSONObject();
+	            try {
+	                json.put(MainActivity.ASTRO_KEY_ACTION, MainActivity.ASTRO_ACTION_ACTIVATE);
+	                json.put(MainActivity.ASTRO_KEY_FEED, feed.getUri().toString());
+	                
+	            } catch (JSONException e) {
+	                Log.e(TAG, "json error", e);
+	                return;
+	            }
+	            controlFeed.postObj(new MemObj("channellist", json));
 			}
 		}
 	}

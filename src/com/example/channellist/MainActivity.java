@@ -13,6 +13,13 @@ public class MainActivity extends Activity {
 
 	private Button mAstrosButton;
 	
+	public static final String ASTRO_KEY_ACTION = "action";
+	public static final int ASTRO_ACTION_OWN = 0;
+	public static final int ASTRO_ACTION_ADD = 1;
+	public static final int ASTRO_ACTION_ACTIVATE = 2;
+	
+	public static final String ASTRO_KEY_FEED = "feeduri";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
