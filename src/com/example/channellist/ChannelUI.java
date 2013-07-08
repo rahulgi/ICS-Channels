@@ -281,7 +281,7 @@ public class ChannelUI extends Activity {
 
 	public byte[] getBytesFromBitmap(Bitmap bitmap) {
 	    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-	    bitmap.compress(CompressFormat.JPEG, 100, stream);
+	    bitmap.compress(CompressFormat.JPEG, 800, stream);
 	    return stream.toByteArray();
 	}
 	
